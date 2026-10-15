@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080810">
+<title>Ashley AI Agent - Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Inter',sans-serif;background:#080810;color:#e8e8f0;overflow-x:hidden;-webkit-font-smoothing:antialiased;min-height:100vh}
+  a{text-decoration:none;color:inherit}
+  ::selection{background:rgba(236,72,153,.3);color:#fff}
+  ::-webkit-scrollbar{width:5px}
+  ::-webkit-scrollbar-track{background:#080810}
+  ::-webkit-scrollbar-thumb{background:rgba(236,72,153,.3);border-radius:3px}
+
+  .bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(ellipse at 20% 20%,rgba(236,72,153,.05) 0%,transparent 60%),
+    radial-gradient(ellipse at 80% 80%,rgba(6,182,212,.04) 0%,transparent 50%)}
+  .orb{position:fixed;border-radius:50%;filter:blur(120px);opacity:.06;z-index:0}
+  .orb-1{width:500px;height:500px;background:#ec4899;top:-10%;left:-5%;animation:od 20s ease-in-out infinite alternate}
+  .orb-2{width:400px;height:400px;background:#06b6d4;bottom:-5%;right:-5%;animation:od 25s ease-in-out infinite alternate-reverse}
+  @keyframes od{0%{transform:translate(0,0) scale(1)}100%{transform:translate(40px,-30px) scale(1.1)}}
+  #particles{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+  /* Login Screen */
+  .login-overlay{position:fixed;inset:0;z-index:9999;background:#080810;display:flex;align-items:center;justify-content:center;flex-direction:column}
+  .login-overlay.hidden{display:none}
+  .login-card{background:rgba(20,20,35,.9);border:1px solid rgba(236,72,153,.15);border-radius:24px;padding:48px 40px;max-width:420px;width:90%;text-align:center;backdrop-filter:blur(20px);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .login-card h1{font-size:1.6rem;font-weight:800;margin-bottom:6px;background:linear-gradient(135deg,#ec4899,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .login-card p{color:#8888aa;font-size:.85rem;margin-bottom:28px}
+  .login-card input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid rgba(236,72,153,.15);background:rgba(255,255,255,.04);color:#e8e8f0;font-size:.95rem;outline:none;margin-bottom:16px;font-family:'Inter',sans-serif}
+  .login-card input:focus{border-color:rgba(236,72,153,.4);box-shadow:0 0 20px rgba(236,72,153,.1)}
+  .login-card input::placeholder{color:#555}
+  .login-btn{width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#ec4899,#8b5cf6);color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .2s}
+  .login-btn:hover{opacity:.9}
+  .login-btn:disabled{opacity:.5;cursor:not-allowed}
+  .login-error{color:#ef4444;font-size:.8rem;margin-top:12px;min-height:20px}
+  .login-ring{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:conic-gradient(from 0deg,#ec4899,#06b6d4,#10b981,#ec4899);animation:spin 10s linear infinite;position:relative;margin:0 auto 20px}
+  .login-ring::after{content:'';position:absolute;inset:4px;background:#141423;border-radius:50%}
+  .login-ring span{position:relative;z-index:1;font-size:1.3rem}
+  .user-greeting{font-size:.75rem;color:#06b6d4;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+  .sb-logout{padding:12px 16px;margin:8px 12px 16px;border-radius:12px;border:1px solid rgba(239,68,68,.15);background:rgba(239,68,68,.06);color:#f87171;font-size:.82rem;font-weight:500;cursor:pointer;text-align:center;transition:all .2s}
+  .sb-logout:hover{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.3)}
+
+  .app{display:flex;min-height:100vh;position:relative;z-index:1}
+
+  /* Sidebar */
+  .sidebar{width:260px;background:rgba(12,12,20,.85);backdrop-filter:blur(20px);border-right:1px solid rgba(236,72,153,.08);
+    display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .3s}
+  .sb-brand{padding:24px 20px 20px;display:flex;align-items:center;gap:12px}
+  .sb-ring{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:conic-gradient(from 0deg,#ec4899,#06b6d4,#10b981,#ec4899);animation:spin 10s linear infinite;position:relative;flex-shrink:0}
+  .sb-ring::after{content:'';position:absolute;inset:3px;background:#0c0c14;border-radius:50%}
+  .sb-ring span{position:relative;z-index:1;font-size:.85rem}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .sb-title{font-weight:800;font-size:1rem;background:linear-gradient(135deg,#ec4899,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .sb-sub{font-size:.65rem;color:#666688;font-weight:500}
+  .sb-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(236,72,153,.1),transparent);margin:0 16px}
+  .sb-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+  .sb-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:12px;cursor:pointer;
+    color:#8888aa;font-weight:500;font-size:.88rem;transition:all .2s;border:1px solid transparent;user-select:none}
+  .sb-item:hover{background:rgba(236,72,153,.06);color:#f9a8d4}
+  .sb-item.active{background:rgba(236,72,153,.1);color:#fff;border-color:rgba(236,72,153,.15)}
+  .sb-item .icon{font-size:1.05rem;width:22px;text-align:center}
+  .sb-stats{margin:8px 12px 16px;padding:14px;background:rgba(236,72,153,.04);border:1px solid rgba(236,72,153,.08);border-radius:14px}
+  .sb-stats h4{font-size:.6rem;text-transform:uppercase;letter-spacing:1.5px;color:#666688;margin-bottom:10px;font-family:'JetBrains Mono',monospace}
+  .sb-stat-row{display:flex;justify-content:space-between;padding:4px 0;font-size:.8rem}
+  .sb-stat-row .lbl{color:#8888aa}
+  .sb-stat-row .val{color:#ec4899;font-weight:700;font-family:'JetBrains Mono',monospace}
+
+  .main{flex:1;margin-left:260px;padding:28px 32px;min-height:100vh}
+  .page{display:none}.page.active{display:block}
+  .pg-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+  .pg-header h1{font-size:1.6rem;font-weight:800;letter-spacing:-.02em}
+  .pg-header p{color:#666688;font-size:.82rem;margin-top:2px}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;font-weight:700;font-size:.82rem;
+    border-radius:12px;border:none;cursor:pointer;transition:all .25s;font-family:'Inter',sans-serif}
+  .btn-pink{background:linear-gradient(135deg,#ec4899,#db2777);color:#fff;box-shadow:0 4px 20px rgba(236,72,153,.25)}
+  .btn-pink:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(236,72,153,.4)}
+  .btn-cyan{background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;box-shadow:0 4px 20px rgba(6,182,212,.2)}
+  .btn-cyan:hover{transform:translateY(-2px)}
+  .btn-green{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+  .btn-ghost{background:rgba(236,72,153,.06);color:#ec4899;border:1px solid rgba(236,72,153,.15)}
+  .btn-ghost:hover{background:rgba(236,72,153,.12)}
+  .btn-sm{padding:7px 14px;font-size:.75rem;border-radius:9px}
+
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+  .metric{padding:20px;background:rgba(12,12,20,.6);border:1px solid rgba(236,72,153,.06);border-radius:18px;transition:all .3s}
+  .metric:hover{border-color:rgba(236,72,153,.2);transform:translateY(-2px);box-shadow:0 12px 40px rgba(0,0,0,.2)}
+  .metric .label{font-size:.65rem;text-transform:uppercase;letter-spacing:1.2px;color:#666688;font-weight:600}
+  .metric .value{font-family:'JetBrains Mono',monospace;font-size:1.8rem;font-weight:800;color:#fff;margin:6px 0 2px}
+  .metric .sub{font-size:.72rem;color:#8888aa}
+
+  .card{background:rgba(12,12,20,.6);border:1px solid rgba(236,72,153,.06);border-radius:18px;padding:22px;transition:all .3s;position:relative;overflow:hidden}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent,#ec4899),transparent);opacity:0;transition:opacity .3s}
+  .card:hover{border-color:rgba(236,72,153,.15);box-shadow:0 12px 40px rgba(0,0,0,.2)}
+  .card:hover::before{opacity:1}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+
+  #lead-list,#outreach-list{display:flex;flex-direction:column;gap:8px;overflow:hidden}
+  .list-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;background:rgba(12,12,20,.5);
+    border:1px solid rgba(236,72,153,.05);border-radius:12px;transition:all .25s;width:100%;box-sizing:border-box}
+  .list-item:hover{border-color:rgba(236,72,153,.18);background:rgba(236,72,153,.03)}
+  .list-item .info{flex:1;min-width:0}
+  .list-item .title{font-weight:700;font-size:.9rem;overflow:hidden;text-overflow:ellipsis}
+  .list-item .sub{color:#06b6d4;font-size:.78rem;margin-top:1px;word-break:break-word}
+  .list-item .meta{font-size:.72rem;color:#666688;margin-top:4px;flex-wrap:wrap;display:flex;gap:4px}
+
+  .tag{font-size:.68rem;padding:3px 10px;border-radius:6px;font-weight:600;display:inline-block;margin:2px}
+  .tag-pink{background:rgba(236,72,153,.1);color:#f9a8d4}
+  .tag-cyan{background:rgba(6,182,212,.1);color:#67e8f9}
+  .tag-green{background:rgba(16,185,129,.1);color:#6ee7b7}
+  .tag-yellow{background:rgba(245,158,11,.1);color:#fcd34d}
+  .tag-red{background:rgba(239,68,68,.1);color:#fca5a5}
+  .tag-purple{background:rgba(139,92,246,.1);color:#c4b5fd}
+
+  .score{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:.85rem;padding:5px 12px;border-radius:9px;flex-shrink:0}
+  .sc-high{background:rgba(16,185,129,.12);color:#10b981}
+  .sc-mid{background:rgba(245,158,11,.12);color:#f59e0b}
+  .sc-low{background:rgba(236,72,153,.12);color:#ec4899}
+
+  .section-title{font-size:1rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .section-title span{font-size:1.1rem}
+
+  .empty{text-align:center;padding:40px 20px;color:#555566}
+  .empty .icon{font-size:2.5rem;opacity:.4;margin-bottom:8px}
+  .empty p{font-size:.85rem}
+
+  .toast{position:fixed;bottom:24px;right:24px;padding:12px 22px;border-radius:12px;color:#fff;font-weight:600;
+    font-size:.85rem;z-index:300;opacity:0;transform:translateY(16px);transition:all .3s;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+  .toast.show{opacity:1;transform:translateY(0)}
+  .toast.success{background:linear-gradient(135deg,#10b981,#059669)}
+  .toast.error{background:linear-gradient(135deg,#ef4444,#dc2626)}
+  .toast.info{background:linear-gradient(135deg,#ec4899,#db2777)}
+
+  .loading{display:flex;align-items:center;justify-content:center;padding:40px;color:#666688;font-size:.9rem}
+  .loading::before{content:'';width:20px;height:20px;border:2px solid rgba(236,72,153,.2);border-top-color:#ec4899;
+    border-radius:50%;animation:spin .6s linear infinite;margin-right:10px}
+
+  .mobile-toggle{display:none;position:fixed;top:14px;left:14px;z-index:150;background:rgba(12,12,20,.9);
+    border:1px solid rgba(236,72,153,.15);border-radius:10px;width:42px;height:42px;align-items:center;
+    justify-content:center;font-size:1.2rem;cursor:pointer;color:#e8e8f0;backdrop-filter:blur(10px)}
+  .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;backdrop-filter:blur(2px)}
+
+  @media(max-width:900px){
+    .sidebar{transform:translateX(-100%)}
+    .sidebar.open{transform:translateX(0)}
+    .sidebar-overlay.open{display:block}
+    .main{margin-left:0;padding:20px 16px;padding-top:64px}
+    .mobile-toggle{display:flex}
+    .metrics{grid-template-columns:1fr 1fr}
+    .two-col,.three-col{grid-template-columns:1fr}
+    .pg-header{flex-direction:column;align-items:flex-start;gap:12px}
+    .pg-header h1{font-size:1.3rem}
+  }
+  @media(max-width:480px){
+    .metrics{grid-template-columns:1fr}
+    .main{padding:14px 10px;padding-top:60px}
+    .metric{padding:14px}
+    .metric .value{font-size:1.4rem}
+    .pg-header h1{font-size:1.15rem}
+    .list-item{padding:10px 12px;gap:8px;flex-wrap:wrap}
+    .list-item .info .title{font-size:.82rem;white-space:normal}
+    .list-item .info .sub{font-size:.72rem}
+    .score{font-size:.75rem;padding:4px 9px}
+    .btn{padding:8px 14px;font-size:.78rem}
+    .btn-sm{padding:6px 10px;font-size:.7rem}
+    .section-title{font-size:.9rem}
+    .tabs{gap:2px;padding:3px}
+    .tab{padding:8px 12px;font-size:.75rem}
+    .login-card{padding:32px 24px}
+    .login-card h1{font-size:1.3rem}
+    .toast{left:16px;right:16px;bottom:16px;font-size:.8rem;text-align:center}
+    .tag{font-size:.62rem;padding:2px 7px}
+    .sb-stats{margin:8px 10px 12px;padding:10px}
+  }
+  @media(max-width:360px){
+    .main{padding:10px 8px;padding-top:56px}
+    .metric .value{font-size:1.2rem}
+    .metrics{gap:10px}
+  }
+
+  /* Tabs */
+  .tabs{display:flex;gap:3px;background:rgba(12,12,20,.5);padding:4px;border-radius:14px;border:1px solid rgba(139,92,246,.08);margin-bottom:20px;overflow-x:auto}
+  .tab{padding:10px 20px;border-radius:11px;font-size:.82rem;font-weight:600;color:#666688;cursor:pointer;
+    transition:all .25s;white-space:nowrap;border:none;background:transparent;font-family:'Inter',sans-serif;user-select:none}
+  .tab:hover{color:#c4b5fd;background:rgba(139,92,246,.06)}
+  .tab.active{background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(6,182,212,.12));color:#fff;box-shadow:0 2px 12px rgba(139,92,246,.15)}
+
+  /* Job sub-pages */
+  .job-sub{display:none}.job-sub.active{display:block}
+
+  /* Search input for job browse */
+  .search-row{display:flex;gap:10px;margin-bottom:20px}
+  .search-input{flex:1;padding:11px 18px;background:rgba(12,12,20,.8);border:1px solid rgba(139,92,246,.1);
+    border-radius:12px;color:#e8e8f0;font-family:'Inter',sans-serif;font-size:.88rem;outline:none;transition:all .25s}
+  .search-input:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.1)}
+  .search-input::placeholder{color:#555566}
+  select.search-input{cursor:pointer;max-width:180px;-webkit-appearance:none;appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%238888aa' d='M5 7L1 3h8z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+  textarea.search-input{resize:vertical;line-height:1.6}
+
+  /* Button additions */
+  .btn-purple{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 4px 20px rgba(139,92,246,.25)}
+  .btn-purple:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(139,92,246,.4)}
+  .btn-red{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}
+  .btn-red:hover{transform:translateY(-2px)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+
+  /* Job card enhancements */
+  .job-card-enhanced{display:flex;align-items:center;gap:16px;padding:18px 22px;background:rgba(12,12,20,.5);
+    border:1px solid rgba(139,92,246,.06);border-radius:16px;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+  .job-card-enhanced::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#8b5cf6,#06b6d4);opacity:0;transition:opacity .3s}
+  .job-card-enhanced:hover{border-color:rgba(139,92,246,.2);background:rgba(139,92,246,.03);transform:translateX(4px);box-shadow:0 8px 30px rgba(0,0,0,.15)}
+  .job-card-enhanced:hover::before{opacity:1}
+
+  /* Scan status bar */
+  .scan-status{margin-top:14px;padding:12px 16px;background:rgba(139,92,246,.04);border:1px solid rgba(139,92,246,.08);
+    border-radius:12px;font-size:.82rem;color:#c4b5fd;display:flex;align-items:center;gap:10px}
+  .scan-status .pulse{width:8px;height:8px;border-radius:50%;background:#8b5cf6;animation:pulse 1.5s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div class="login-overlay" id="login-screen">
+  <div class="login-card">
+    <div class="login-ring"><span>A</span></div>
+    <h1>Ashley Command Center</h1>
+    <p>Log in with the email you registered on Telegram</p>
+    <input type="email" id="login-email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Sign In</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<div class="bg-glow"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<canvas id="particles"></canvas>
+
+<button class="mobile-toggle" onclick="toggleSidebar()">&#9776;</button>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-ring"><span>&#10024;</span></div>
+      <div><div class="sb-title">Ashley AI</div><div class="sb-sub">Executive Assistant</div></div>
+    </div>
+    <div class="sb-divider"></div>
+    <nav class="sb-nav">
+      <div class="sb-item active" onclick="go('overview',this)"><span class="icon">&#127968;</span>Overview</div>
+      <div class="sb-item" onclick="go('emails',this)"><span class="icon">&#128231;</span>Email Intelligence</div>
+      <div class="sb-item" onclick="go('jobs',this)"><span class="icon">&#128188;</span>Job Search</div>
+      <div class="sb-item" onclick="go('calendar',this)"><span class="icon">&#128197;</span>Calendar</div>
+      <div class="sb-item" onclick="go('tasks',this)"><span class="icon">&#9989;</span>Tasks</div>
+      <div class="sb-item" onclick="go('leads',this)"><span class="icon">&#127919;</span>Leads &amp; Outreach</div>
+    </nav>
+    <div class="sb-divider"></div>
+    <div class="sb-stats">
+      <h4>Quick Stats</h4>
+      <div class="sb-stat-row"><span class="lbl">Emails (7d)</span><span class="val" id="s-emails">0</span></div>
+      <div class="sb-stat-row"><span class="lbl">Jobs</span><span class="val" id="s-jobs">0</span></div>
+      <div class="sb-stat-row"><span class="lbl">Applications</span><span class="val" id="s-apps">0</span></div>
+      <div class="sb-stat-row"><span class="lbl">Tasks</span><span class="val" id="s-tasks">0</span></div>
+      <div class="sb-stat-row"><span class="lbl">Leads</span><span class="val" id="s-leads">0</span></div>
+    </div>
+    <div class="sb-logout" onclick="doLogout()">Sign Out</div>
+  </aside>
+
+  <main class="main">
+    <!-- Overview -->
+    <div class="page active" id="pg-overview">
+      <div class="pg-header">
+        <div><h1>Ashley Command Center</h1><p id="dash-date">Loading...</p></div>
+        <button class="btn btn-pink" onclick="loadData()">&#128260; Refresh</button>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="label">Emails (7 days)</div><div class="value" id="m-emails">0</div><div class="sub" id="m-emails-sub">analyzed</div></div>
+        <div class="metric"><div class="label">Spam Blocked</div><div class="value" id="m-spam">0</div><div class="sub">detected &amp; flagged</div></div>
+        <div class="metric"><div class="label">Active Jobs</div><div class="value" id="m-jobs">0</div><div class="sub" id="m-jobs-sub">across all sources</div></div>
+        <div class="metric"><div class="label">Avg Match</div><div class="value" id="m-avg">--%</div><div class="sub">AI match quality</div></div>
+      </div>
+      <div class="two-col">
+        <div>
+          <div class="section-title"><span>&#128197;</span> Today's Schedule</div>
+          <div id="dash-events" class="loading">Loading calendar...</div>
+        </div>
+        <div>
+          <div class="section-title"><span>&#11088;</span> Top Job Matches</div>
+          <div id="dash-matches" class="loading">Loading matches...</div>
+        </div>
+      </div>
+      <div style="margin-top:20px">
+        <div class="two-col">
+          <div>
+            <div class="section-title"><span>&#9989;</span> Open Tasks</div>
+            <div id="dash-tasks" class="loading">Loading tasks...</div>
+          </div>
+          <div>
+            <div class="section-title"><span>&#128232;</span> Pending Emails</div>
+            <div id="dash-pending" class="loading">Loading queue...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Email Intelligence -->
+    <div class="page" id="pg-emails">
+      <div class="pg-header">
+        <div><h1>Email Intelligence</h1><p>Ashley's analysis of your inbox (last 7 days)</p></div>
+      </div>
+      <div class="metrics" id="email-metrics">
+        <div class="metric"><div class="label">Total Analyzed</div><div class="value" id="e-total">0</div><div class="sub">emails processed</div></div>
+        <div class="metric"><div class="label">Spam Detected</div><div class="value" id="e-spam">0</div><div class="sub">blocked or flagged</div></div>
+        <div class="metric"><div class="label">Suspicious</div><div class="value" id="e-sus">0</div><div class="sub">potential threats</div></div>
+        <div class="metric"><div class="label">Urgent</div><div class="value" id="e-urgent">0</div><div class="sub">need attention</div></div>
+      </div>
+      <div class="section-title"><span>&#128202;</span> Category Breakdown</div>
+      <div id="email-categories" class="card" style="--accent:#06b6d4">
+        <div class="loading">Loading...</div>
+      </div>
+      <div style="margin-top:20px">
+        <div class="section-title"><span>&#128229;</span> Recent Emails</div>
+        <div id="email-recent"></div>
+      </div>
+      <div style="margin-top:20px">
+        <div class="section-title"><span>&#128228;</span> Email Queue <span style="font-size:.7rem;color:#666688;font-weight:400">(scheduled &amp; sent by Ashley)</span></div>
+        <div class="tabs" id="eq-tabs">
+          <div class="tab active" onclick="eqTab('pending',this)">&#9203; Pending</div>
+          <div class="tab" onclick="eqTab('sent',this)">&#9989; Sent</div>
+          <div class="tab" onclick="eqTab('all',this)">&#128203; All</div>
+        </div>
+        <div id="email-queue-list"></div>
+      </div>
+    </div>
+
+    <!-- Job Search -->
+    <div class="page" id="pg-jobs">
+      <div class="pg-header">
+        <div>
+          <h1 style="background:linear-gradient(135deg,#8b5cf6,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Job Search</h1>
+          <p>Your AI-powered career dashboard</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-purple btn-sm" onclick="jobTab('jt-search',document.querySelectorAll('#job-tabs .tab')[3])">&#128269; New Scan</button>
+          <button class="btn btn-green btn-sm" onclick="loadData()">&#8635; Refresh</button>
+        </div>
+      </div>
+      <!-- Sub-tabs -->
+      <div class="tabs" id="job-tabs">
+        <div class="tab active" onclick="jobTab('jt-dash',this)">&#127968; Dashboard</div>
+        <div class="tab" onclick="jobTab('jt-browse',this)">&#128188; Jobs</div>
+        <div class="tab" onclick="jobTab('jt-apps',this)">&#128221; Applications</div>
+        <div class="tab" onclick="jobTab('jt-search',this)">&#128269; Search</div>
+      </div>
+
+      <!-- Job Sub: Dashboard -->
+      <div class="job-sub active" id="jt-dash">
+        <div class="metrics">
+          <div class="metric" style="--accent:#8b5cf6"><div class="label">Active Jobs</div><div class="value" id="j-total" style="color:#8b5cf6">0</div><div class="sub">from 6 sources</div></div>
+          <div class="metric" style="--accent:#06b6d4"><div class="label">Applications</div><div class="value" id="j-apps" style="color:#06b6d4">0</div><div class="sub" id="j-apps-sub">total drafts</div></div>
+          <div class="metric" style="--accent:#f59e0b"><div class="label">Pending Review</div><div class="value" id="j-pending" style="color:#f59e0b">0</div><div class="sub">need your decision</div></div>
+          <div class="metric" style="--accent:#10b981"><div class="label">Sent</div><div class="value" id="j-sent" style="color:#10b981">0</div><div class="sub">applications delivered</div></div>
+        </div>
+        <div class="two-col" style="margin-bottom:20px">
+          <div>
+            <div class="section-title"><span>&#127942;</span> Top Matches</div>
+            <div id="job-matches"></div>
+          </div>
+          <div>
+            <div class="section-title"><span>&#9889;</span> Quick Actions</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button class="btn btn-purple" style="width:100%;justify-content:center" onclick="jobTab('jt-search',document.querySelectorAll('#job-tabs .tab')[3]);runJobScan()">&#128269; Scan All Sources</button>
+              <button class="btn btn-green" style="width:100%;justify-content:center" onclick="jobTab('jt-search',document.querySelectorAll('#job-tabs .tab')[3]);runJobAnalysis()">&#129504; Analyze & Match</button>
+              <button class="btn btn-cyan" style="width:100%;justify-content:center" onclick="jobTab('jt-apps',document.querySelectorAll('#job-tabs .tab')[2])">&#128221; Review Applications</button>
+              <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="jobTab('jt-browse',document.querySelectorAll('#job-tabs .tab')[1])">&#128188; Browse All Jobs</button>
+            </div>
+          </div>
+        </div>
+        <div class="section-title"><span>&#128188;</span> Recent Jobs</div>
+        <div id="job-list"></div>
+      </div>
+
+      <!-- Job Sub: Browse Jobs -->
+      <div class="job-sub" id="jt-browse">
+        <div class="search-row">
+          <input class="search-input" id="job-filter" placeholder="&#128269; Search jobs by title, company, location..." oninput="filterJobs()">
+          <select class="search-input" id="job-source-filter" onchange="filterJobs()">
+            <option value="">All Sources</option>
+            <option value="remoteok">RemoteOK</option>
+            <option value="arbeitnow">Arbeitnow</option>
+            <option value="linkedin">LinkedIn</option>
+            <option value="greenhouse">Greenhouse</option>
+            <option value="lever">Lever</option>
+            <option value="adzuna">Adzuna</option>
+            <option value="onlinejobsph">OnlineJobs.ph</option>
+          </select>
+        </div>
+        <div id="job-count" style="font-size:.78rem;color:#666688;margin-bottom:12px"></div>
+        <div id="job-browse-list"></div>
+      </div>
+
+      <!-- Job Sub: Applications -->
+      <div class="job-sub" id="jt-apps">
+        <div class="tabs" id="app-status-tabs">
+          <div class="tab active" onclick="filterApps('all',this)">All</div>
+          <div class="tab" onclick="filterApps('pending',this)">&#128992; Pending</div>
+          <div class="tab" onclick="filterApps('approved',this)">&#128994; Approved</div>
+          <div class="tab" onclick="filterApps('sent',this)">&#128995; Sent</div>
+          <div class="tab" onclick="filterApps('rejected',this)">&#128308; Rejected</div>
+        </div>
+        <div id="app-list"></div>
+      </div>
+
+      <!-- Job Sub: Search & Scan -->
+      <div class="job-sub" id="jt-search">
+        <div class="two-col">
+          <div class="card" style="--accent:#8b5cf6">
+            <div class="section-title"><span>&#128269;</span> Scan for Jobs</div>
+            <p style="font-size:.78rem;color:#666688;margin-bottom:14px">Search across RemoteOK, Arbeitnow, LinkedIn, Greenhouse, Lever, Adzuna & OnlineJobs.ph</p>
+            <div style="margin-bottom:14px">
+              <label style="font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:#8888aa;font-weight:600;display:block;margin-bottom:6px;font-family:'JetBrains Mono',monospace">Keywords</label>
+              <input class="search-input" id="scan-keywords" style="width:100%" placeholder="AI automation, LLM, prompt engineering..." value="AI automation, workflow automation, LLM, AI engineer, prompt engineering">
+            </div>
+            <div style="margin-bottom:16px">
+              <label style="font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:#8888aa;font-weight:600;display:block;margin-bottom:6px;font-family:'JetBrains Mono',monospace">Max per source</label>
+              <input class="search-input" id="scan-max" type="number" style="width:100%" value="10">
+            </div>
+            <div style="display:flex;gap:10px">
+              <button class="btn btn-purple" style="flex:1;justify-content:center" onclick="runJobScan()" id="scan-btn">&#128269; Run Search</button>
+              <button class="btn btn-green" style="flex:1;justify-content:center" onclick="runJobAnalysis()" id="analyze-btn">&#129504; Analyze</button>
+            </div>
+            <div id="scan-status" style="display:none" class="scan-status"><div class="pulse"></div><span id="scan-status-text"></span></div>
+          </div>
+          <div class="card" style="--accent:#06b6d4">
+            <div class="section-title"><span>&#128196;</span> Your CV / Profile</div>
+            <p style="font-size:.78rem;color:#666688;margin-bottom:14px">Paste your CV so Ashley can score job matches against your skills</p>
+            <textarea class="search-input" id="cv-text" style="width:100%;min-height:200px" placeholder="Paste your CV or profile summary here..."></textarea>
+            <div style="margin-top:12px">
+              <button class="btn btn-cyan" onclick="saveCv()">&#128190; Save CV</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="page" id="pg-calendar">
+      <div class="pg-header">
+        <div><h1>Today's Calendar</h1><p>Your schedule for today</p></div>
+      </div>
+      <div id="cal-events"></div>
+    </div>
+
+    <!-- Tasks -->
+    <div class="page" id="pg-tasks">
+      <div class="pg-header">
+        <div><h1>Tasks</h1><p>Your to-do list from Supabase</p></div>
+      </div>
+      <div id="task-list"></div>
+    </div>
+
+    <!-- Leads & Outreach -->
+    <div class="page" id="pg-leads">
+      <div class="pg-header">
+        <div><h1>Leads &amp; Outreach</h1><p>Businesses scraped from Google Maps + AI outreach</p></div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="label">Total Leads</div><div class="value" id="l-total">0</div><div class="sub">scraped businesses</div></div>
+        <div class="metric"><div class="label">Contacted</div><div class="value" id="l-contacted">0</div><div class="sub">outreach sent</div></div>
+        <div class="metric"><div class="label">Replied</div><div class="value" id="l-replied">0</div><div class="sub">got responses</div></div>
+        <div class="metric"><div class="label">Converted</div><div class="value" id="l-converted">0</div><div class="sub">became clients</div></div>
+      </div>
+      <div class="two-col">
+        <div>
+          <div class="section-title"><span>&#127919;</span> Leads</div>
+          <div id="lead-list" class="loading">Loading leads...</div>
+        </div>
+        <div>
+          <div class="section-title"><span>&#128232;</span> Outreach Messages</div>
+          <div id="outreach-list" class="loading">Loading messages...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let D={};
+let ASHLEY_UID = localStorage.getItem('ashley_uid') || '';
+let ASHLEY_USER = JSON.parse(localStorage.getItem('ashley_user') || 'null');
+
+function api(path){return path+(path.includes('?')?'&':'?')+'uid='+encodeURIComponent(ASHLEY_UID)}
+
+function doLogin(){
+  const btn=document.getElementById('login-btn');
+  const err=document.getElementById('login-error');
+  const email=document.getElementById('login-email').value.trim();
+  if(!email){err.textContent='Please enter your email.';return}
+  btn.disabled=true;btn.textContent='Signing in...';err.textContent='';
+  fetch('/api/auth?email='+encodeURIComponent(email))
+    .then(r=>r.json()).then(d=>{
+      if(d.success&&d.user){
+        ASHLEY_UID=d.user.uid;ASHLEY_USER=d.user;
+        localStorage.setItem('ashley_uid',ASHLEY_UID);
+        localStorage.setItem('ashley_user',JSON.stringify(ASHLEY_USER));
+        document.getElementById('login-screen').classList.add('hidden');
+        loadData();
+      } else {
+        err.textContent=d.error||'Login failed. Check your email.';
+      }
+    }).catch(()=>{err.textContent='Cannot reach server. Is Ashley running?'})
+    .finally(()=>{btn.disabled=false;btn.textContent='Sign In'});
+}
+
+function doLogout(){
+  localStorage.removeItem('ashley_uid');localStorage.removeItem('ashley_user');
+  ASHLEY_UID='';ASHLEY_USER=null;
+  document.getElementById('login-screen').classList.remove('hidden');
+}
+
+// Check if already logged in
+if(ASHLEY_UID){document.getElementById('login-screen').classList.add('hidden')}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+function go(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('pg-'+id).classList.add('active');
+  if(el)el.classList.add('active');
+  closeSidebar();
+}
+function toast(msg,type='info'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),3500)}
+function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function set(id,v){const e=document.getElementById(id);if(e)e.textContent=v}
+function scoreClass(s){return s>=80?'sc-high':s>=60?'sc-mid':'sc-low'}
+
+function loadData(){
+  fetch(api('/api/dashboard'))
+    .then(r=>r.json())
+    .then(data=>{
+      D=data;
+      document.querySelectorAll('.loading').forEach(el=>el.classList.remove('loading'));
+      renderOverview();
+      renderEmails();
+      loadEmailQueue();
+      renderJobs();
+      renderCalendar();
+      renderTasks();
+      renderLeads();
+      toast('Dashboard updated!','success');
+    })
+    .catch(e=>{
+      console.error(e);
+      toast('Failed to load data. Is the server running?','error');
+    });
+}
+
+function renderOverview(){
+  set('dash-date',D.date+' | '+D.time);
+  const es=D.email_stats||{};
+  const js=D.job_stats||{};
+  set('m-emails',es.total||0);
+  set('m-spam',es.spam_count||0);
+  set('m-jobs',js.total_jobs||0);
+  set('m-avg',js.avg_score?js.avg_score+'%':'--%');
+  set('s-emails',es.total||0);
+  set('s-jobs',js.total_jobs||0);
+  set('s-apps',js.total_applications||0);
+  set('s-tasks',(D.tasks||[]).length);
+
+  // Events
+  const evEl=document.getElementById('dash-events');
+  const evs=D.events||[];
+  if(!evs.length){evEl.innerHTML='<div class="empty"><div class="icon">&#128197;</div><p>No events today</p></div>';}
+  else{evEl.innerHTML=evs.slice(0,6).map(e=>{
+    let t='All day';
+    if(e.start&&e.start.includes('T')){try{t=new Date(e.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}catch(x){}}
+    return`<div class="list-item"><div class="info"><div class="title">${esc(e.summary||'No title')}</div><div class="sub">${t}</div></div></div>`;
+  }).join('');}
+
+  // Top matches
+  const mEl=document.getElementById('dash-matches');
+  const ms=D.top_matches||[];
+  if(!ms.length){mEl.innerHTML='<div class="empty"><div class="icon">&#128188;</div><p>No matches yet</p></div>';}
+  else{mEl.innerHTML=ms.slice(0,5).map(m=>{
+    const j=m.jobs||{};
+    const sc=m.match_score||0;
+    return`<div class="list-item"><div class="info"><div class="title">${esc(j.title||'?')}</div><div class="sub">${esc(j.company||'?')}</div></div>
+      ${j.application_link?`<a href="${esc(j.application_link)}" target="_blank" class="btn btn-ghost btn-sm">&#128279;</a>`:''}
+      <div class="score ${scoreClass(sc)}">${sc}%</div></div>`;
+  }).join('');}
+
+  // Tasks
+  const tEl=document.getElementById('dash-tasks');
+  const ts=D.tasks||[];
+  if(!ts.length){tEl.innerHTML='<div class="empty"><div class="icon">&#9989;</div><p>All clear!</p></div>';}
+  else{tEl.innerHTML=ts.slice(0,6).map(t=>`<div class="list-item"><div class="info"><div class="title">${esc(t.name)}</div></div></div>`).join('');}
+
+  // Pending emails
+  const pEl=document.getElementById('dash-pending');
+  const ps=D.pending_emails||[];
+  if(!ps.length){pEl.innerHTML='<div class="empty"><div class="icon">&#128232;</div><p>No scheduled emails</p></div>';}
+  else{pEl.innerHTML=ps.slice(0,5).map(p=>`<div class="list-item"><div class="info"><div class="title">${esc(p.subject)}</div><div class="sub">To: ${esc(p.recipient_email)}</div></div></div>`).join('');}
+}
+
+function renderEmails(){
+  const es=D.email_stats||{};
+  set('e-total',es.total||0);
+  set('e-spam',es.spam_count||0);
+  set('e-sus',es.suspicious_count||0);
+  set('e-urgent',es.urgent_count||0);
+
+  const cats=es.categories||{};
+  const catEl=document.getElementById('email-categories');
+  if(!Object.keys(cats).length){catEl.innerHTML='<p style="color:#666688">No email data yet</p>';return;}
+  const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  const max=sorted[0]?sorted[0][1]:1;
+  catEl.innerHTML=sorted.map(([cat,count])=>{
+    const pct=Math.round(count/max*100);
+    const colors={Work:'#ec4899',Client:'#06b6d4',Personal:'#10b981',Family:'#f59e0b',Spam:'#ef4444',Scam:'#ef4444',Newsletter:'#8b5cf6',Promotion:'#f97316',Finance:'#06b6d4',Other:'#666688'};
+    const c=colors[cat]||'#666688';
+    return`<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+      <span style="width:100px;font-size:.82rem;font-weight:600;color:${c}">${esc(cat)}</span>
+      <div style="flex:1;height:8px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${c};border-radius:4px;transition:width .5s"></div>
+      </div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:#8888aa;min-width:30px;text-align:right">${count}</span>
+    </div>`;
+  }).join('');
+
+  // Recent
+  const rEl=document.getElementById('email-recent');
+  const recent=es.recent_emails||[];
+  if(!recent.length){rEl.innerHTML='<div class="empty"><p>No recent emails</p></div>';return;}
+  rEl.innerHTML=recent.map(r=>{
+    const catColors={Work:'tag-pink',Client:'tag-cyan',Personal:'tag-green',Family:'tag-yellow',Spam:'tag-red',Scam:'tag-red',Newsletter:'tag-purple',Promotion:'tag-yellow'};
+    const tagCls=catColors[r.category]||'tag-pink';
+    return`<div class="list-item">
+      <div class="info"><div class="title">${esc(r.subject||'No subject')}</div>
+      <div class="sub">${esc(r.sender_name||'Unknown')}</div>
+      <div class="meta"><span class="tag ${tagCls}">${esc(r.category)}</span>
+        <span class="tag ${r.spam_score>=50?'tag-red':'tag-green'}">Spam: ${r.spam_score||0}/100</span>
+        <span class="tag tag-cyan">${esc(r.urgency||'Medium')}</span></div></div></div>`;
+  }).join('');
+}
+
+// Email Queue
+let eqData=[], eqFilter='pending';
+function eqTab(filter, el){
+  eqFilter=filter;
+  document.querySelectorAll('#eq-tabs .tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+  renderEmailQueue();
+}
+function loadEmailQueue(){
+  fetch(api('/api/email-queue')).then(r=>r.json()).then(data=>{
+    eqData=data.emails||[];
+    renderEmailQueue();
+  }).catch(()=>{document.getElementById('email-queue-list').innerHTML='<div class="empty"><p>Could not load email queue</p></div>';});
+}
+function renderEmailQueue(){
+  const el=document.getElementById('email-queue-list');
+  let filtered=eqData;
+  if(eqFilter==='pending') filtered=eqData.filter(e=>e.status==='Pending');
+  else if(eqFilter==='sent') filtered=eqData.filter(e=>e.status==='Sent');
+  if(!filtered.length){el.innerHTML=`<div class="empty"><div class="icon">&#128228;</div><p>No ${eqFilter} emails</p></div>`;return;}
+  el.innerHTML=filtered.map(e=>{
+    const isPending=e.status==='Pending';
+    const d=e.scheduled_time?new Date(e.scheduled_time):null;
+    const timeStr=d?d.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true}):'';
+    return`<div class="list-item">
+      <div class="info">
+        <div class="title">${esc(e.subject||'No subject')}</div>
+        <div class="sub">To: ${esc(e.recipient_email||'?')}</div>
+        <div class="meta">
+          <span class="tag ${isPending?'tag-yellow':'tag-green'}">${esc(e.status)}</span>
+          ${timeStr?`<span class="tag tag-cyan">${isPending?'&#9203; Scheduled':'&#9989; Sent'}: ${timeStr}</span>`:''}
+        </div>
+        ${e.body_content?`<div class="meta" style="margin-top:4px;color:#8888aa;font-size:.72rem">${esc(e.body_content.substring(0,120))}...</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderJobs(){
+  const js=D.job_stats||{};
+  set('j-total',js.total_jobs||0);
+  set('j-apps',js.total_applications||0);
+  set('j-pending',js.pending||0);
+  set('j-sent',js.sent||0);
+
+  // Top matches
+  const mEl=document.getElementById('job-matches');
+  const ms=D.top_matches||[];
+  if(!ms.length){mEl.innerHTML='<div class="empty"><div class="icon">&#127942;</div><p>Run job analysis to see matches</p></div>';return;}
+  mEl.innerHTML=ms.map(m=>{
+    const j=m.jobs||{};
+    const sc=m.match_score||0;
+    const st=m.status||'pending';
+    const stColors={pending:'tag-yellow',approved:'tag-green',sent:'tag-purple',rejected:'tag-red'};
+    return`<div class="list-item">
+      <div class="info"><div class="title">${esc(j.title||'?')}</div>
+      <div class="sub">${esc(j.company||'?')}${j.location?' | '+esc(j.location):''}</div>
+      <div class="meta"><span class="tag ${stColors[st]||'tag-yellow'}">${st}</span>
+        <span class="tag tag-cyan">${esc(j.source||'')}</span>
+        ${j.salary?`<span class="tag tag-green">${esc(j.salary)}</span>`:''}</div></div>
+      ${j.application_link?`<a href="${esc(j.application_link)}" target="_blank" class="btn btn-ghost btn-sm">&#128279; Apply</a>`:''}
+      <div class="score ${scoreClass(sc)}">${sc}%</div></div>`;
+  }).join('');
+
+  // Recent jobs placeholder
+  const jEl=document.getElementById('job-list');
+  fetch(api('/api/jobs')).then(r=>r.json()).then(data=>{
+    const jobs=data.jobs||[];
+    if(!jobs.length){jEl.innerHTML='<div class="empty"><p>No jobs loaded</p></div>';return;}
+    jEl.innerHTML=jobs.slice(0,15).map(j=>`<div class="list-item">
+      <div class="info"><div class="title">${esc(j.title)}</div>
+      <div class="sub">${esc(j.company)}${j.location?' | '+esc(j.location):''}</div>
+      <div class="meta"><span class="tag tag-cyan">${esc(j.source)}</span>
+        ${j.salary?`<span class="tag tag-green">${esc(j.salary)}</span>`:''}</div></div>
+      ${j.application_link?`<a href="${esc(j.application_link)}" target="_blank" class="btn btn-ghost btn-sm">&#128279;</a>`:''}</div>`).join('');
+  }).catch(()=>{jEl.innerHTML='<div class="empty"><p>Could not load jobs</p></div>';});
+}
+
+function renderCalendar(){
+  const el=document.getElementById('cal-events');
+  const evs=D.events||[];
+  if(!evs.length){el.innerHTML='<div class="empty"><div class="icon">&#128197;</div><p>No events scheduled for today</p></div>';return;}
+  el.innerHTML=evs.map(e=>{
+    let time='All day';
+    if(e.start&&e.start.includes('T')){try{time=new Date(e.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' - '+new Date(e.end).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}catch(x){}}
+    return`<div class="list-item"><div class="info"><div class="title">${esc(e.summary||'No title')}</div><div class="sub">${time}</div>
+      ${e.attendees&&e.attendees.length?`<div class="meta">${e.attendees.map(a=>`<span class="tag tag-cyan">${esc(a)}</span>`).join('')}</div>`:''}</div></div>`;
+  }).join('');
+}
+
+function renderTasks(){
+  const el=document.getElementById('task-list');
+  const ts=D.tasks||[];
+  if(!ts.length){el.innerHTML='<div class="empty"><div class="icon">&#9989;</div><p>No tasks. You\'re all caught up!</p></div>';return;}
+  el.innerHTML=ts.map(t=>`<div class="list-item"><div class="info"><div class="title">${esc(t.name)}</div><div class="meta" style="color:#555566">Created: ${t.created_at?new Date(t.created_at).toLocaleDateString():''}</div></div></div>`).join('');
+}
+
+function renderLeads(){
+  const ls=D.lead_stats||{};
+  const os=D.outreach_stats||{};
+  set('l-total',ls.total_leads||0);
+  set('l-contacted',ls.contacted||0);
+  set('l-replied',ls.replied||0);
+  set('l-converted',ls.converted||0);
+  set('s-leads',ls.total_leads||0);
+
+  // Load leads
+  fetch(api('/api/leads')).then(r=>r.json()).then(data=>{
+    const el=document.getElementById('lead-list');
+    const leads=data.leads||[];
+    if(!leads.length){el.innerHTML='<div class="empty"><div class="icon">&#127919;</div><p>No leads yet. Tell Ashley to scrape Google Maps!</p></div>';return;}
+    el.innerHTML=leads.slice(0,20).map(l=>{
+      const sc=l.lead_score||0;
+      const stColors={new:'tag-cyan',contacted:'tag-yellow',replied:'tag-green',converted:'tag-pink'};
+      return`<div class="list-item">
+        <div class="info"><div class="title">${esc(l.business_name)}</div>
+        <div class="sub">${esc(l.category||'')}${l.address?' | '+esc(l.address):''}</div>
+        <div class="meta">
+          <span class="tag ${stColors[l.status]||'tag-cyan'}">${l.status||'new'}</span>
+          ${l.email?`<span class="tag tag-green">${esc(l.email)}</span>`:'<span class="tag tag-red">No email</span>'}
+          ${l.phone?`<span class="tag tag-purple">${esc(l.phone)}</span>`:''}
+          ${l.rating?`<span class="tag tag-yellow">${l.rating} &#9733; (${l.review_count||0})</span>`:''}
+        </div>
+        ${l.website_analysis?`<div class="meta" style="margin-top:4px;color:#8888aa;font-size:.72rem">${esc(l.website_analysis.substring(0,120))}...</div>`:''}</div>
+        ${l.website?`<a href="${esc(l.website)}" target="_blank" class="btn btn-ghost btn-sm">&#127760;</a>`:''}
+        ${l.google_maps_url?`<a href="${esc(l.google_maps_url)}" target="_blank" class="btn btn-ghost btn-sm">&#128205;</a>`:''}
+        <div class="score ${scoreClass(sc)}">${sc}</div></div>`;
+    }).join('');
+  }).catch(()=>{document.getElementById('lead-list').innerHTML='<div class="empty"><p>Could not load leads</p></div>';});
+
+  // Load outreach messages
+  fetch(api('/api/outreach')).then(r=>r.json()).then(data=>{
+    const el=document.getElementById('outreach-list');
+    const msgs=data.messages||[];
+    if(!msgs.length){el.innerHTML='<div class="empty"><div class="icon">&#128232;</div><p>No outreach messages yet</p></div>';return;}
+    el.innerHTML=msgs.slice(0,20).map(m=>{
+      const lead=m.leads||{};
+      const stColors={draft:'tag-yellow',approved:'tag-green',sent:'tag-purple'};
+      return`<div class="list-item" style="cursor:pointer" onclick="viewOutreach(${m.id},'${esc(lead.business_name||'')}','${esc(m.recipient_email||'')}','${esc(m.subject||'')}')">
+        <div class="info"><div class="title">${esc(lead.business_name||'Unknown')}</div>
+        <div class="sub">To: ${esc(m.recipient_email||'?')} | ${esc(m.service_offered||'')}</div>
+        <div class="meta">
+          <span class="tag ${stColors[m.status]||'tag-yellow'}">${m.status||'draft'}</span>
+          <span style="font-size:.72rem;color:#666688">${esc(m.subject||'')}</span>
+        </div></div>
+        ${m.status==='draft'?`<button class="btn btn-green btn-sm" onclick="event.stopPropagation();approveOutreach(${m.id})">&#9989;</button>`:''}
+        ${m.status==='approved'?`<button class="btn btn-pink btn-sm" onclick="event.stopPropagation();sendOutreach(${m.id},'${esc(m.recipient_email)}','${esc(m.subject)}','${esc((m.body_content||'').replace(/'/g,"\\'").replace(/\n/g,"\\n"))}')">&#128231; Send</button>`:''}
+        ${m.status==='sent'?`<span style="color:#6ee7b7;font-size:.75rem;font-weight:600">&#9989; Sent</span>`:''}
+      </div>`;
+    }).join('');
+  }).catch(()=>{document.getElementById('outreach-list').innerHTML='<div class="empty"><p>Could not load messages</p></div>';});
+}
+
+function approveOutreach(id){
+  fetch(api('/api/update-outreach'),{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({message_id:id,status:'approved'})})
+    .then(r=>r.json()).then(d=>{if(d.success){toast('Message approved!','success');renderLeads();}else toast('Error: '+d.error,'error')})
+    .catch(()=>toast('Network error','error'));
+}
+
+function sendOutreach(id,to,subject,body){
+  if(!confirm('Send outreach email to '+to+'?'))return;
+  fetch(api('/api/send-outreach'),{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({message_id:id,to:to,subject:subject,body:body})})
+    .then(r=>r.json()).then(d=>{if(d.success){toast('Email sent to '+to+'!','success');renderLeads();}else toast('Send failed: '+d.error,'error')})
+    .catch(()=>toast('Network error','error'));
+}
+
+function viewOutreach(id,biz,email,subject){
+  fetch(api('/api/outreach')).then(r=>r.json()).then(data=>{
+    const msg=(data.messages||[]).find(m=>m.id===id);
+    if(!msg)return;
+    const body=msg.body_content||'';
+    const el=document.createElement('div');
+    el.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center';
+    el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(16,16,30,.98),rgba(12,12,20,.98));border:1px solid rgba(236,72,153,.12);border-radius:20px;max-width:600px;width:92%;max-height:80vh;overflow-y:auto;padding:28px;box-shadow:0 30px 80px rgba(0,0,0,.5)">
+      <div style="display:flex;justify-content:space-between;margin-bottom:16px"><div><h2 style="font-size:1.2rem;font-weight:800">${esc(biz)}</h2><p style="color:#06b6d4;font-size:.85rem">To: ${esc(email)}</p></div>
+      <button onclick="this.closest('div[style*=fixed]').remove()" style="width:34px;height:34px;border-radius:10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#fca5a5;cursor:pointer;font-size:1rem">&times;</button></div>
+      <label style="font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:#666688;font-weight:600;font-family:JetBrains Mono,monospace">Subject</label>
+      <input id="oe-subj" value="${esc(subject)}" style="width:100%;padding:10px 14px;background:rgba(12,12,20,.8);border:1px solid rgba(236,72,153,.1);border-radius:10px;color:#e8e8f0;font-family:Inter,sans-serif;font-size:.85rem;margin:6px 0 12px">
+      <label style="font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:#666688;font-weight:600;font-family:JetBrains Mono,monospace">Message</label>
+      <textarea id="oe-body" style="width:100%;min-height:200px;padding:14px;background:rgba(12,12,20,.8);border:1px solid rgba(236,72,153,.1);border-radius:12px;color:#e8e8f0;font-family:Inter,sans-serif;font-size:.88rem;resize:vertical;margin-top:6px">${esc(body)}</textarea>
+      <div style="display:flex;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid rgba(236,72,153,.08)">
+        <button class="btn btn-cyan" onclick="saveDraftOutreach(${id});this.closest('div[style*=fixed]').remove()">&#128190; Save</button>
+        ${msg.status!=='sent'?`<button class="btn btn-pink" onclick="sendEditedOutreach(${id},'${esc(email)}');this.closest('div[style*=fixed]').remove()">&#128231; Send</button>`:''}
+        <button class="btn btn-ghost" onclick="this.closest('div[style*=fixed]').remove()">Close</button>
+      </div></div>`;
+    document.body.appendChild(el);
+    el.addEventListener('click',e=>{if(e.target===el)el.remove();});
+  });
+}
+
+function saveDraftOutreach(id){
+  const subj=document.getElementById('oe-subj').value;
+  const body=document.getElementById('oe-body').value;
+  fetch(api('/api/save-outreach-draft'),{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({message_id:id,subject:subj,body:body})})
+    .then(r=>r.json()).then(d=>{if(d.success)toast('Draft saved!','success');else toast('Error','error');renderLeads();})
+    .catch(()=>toast('Network error','error'));
+}
+
+function sendEditedOutreach(id,to){
+  const subj=document.getElementById('oe-subj').value;
+  const body=document.getElementById('oe-body').value;
+  fetch(api('/api/send-outreach'),{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({message_id:id,to:to,subject:subj,body:body})})
+    .then(r=>r.json()).then(d=>{if(d.success){toast('Sent to '+to+'!','success');renderLeads();}else toast('Error: '+d.error,'error')})
+    .catch(()=>toast('Network error','error'));
+}
+
+// Job Search sub-tab navigation
+function jobTab(id,el){
+  document.querySelectorAll('.job-sub').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('#job-tabs .tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+  if(id==='jt-browse')loadJobBrowse();
+  if(id==='jt-apps')loadApps();
+  if(id==='jt-search')loadCv();
+}
+
+let allJobs=[];
+let allApps=[];
+let currentAppFilter='all';
+
+function loadJobBrowse(){
+  const el=document.getElementById('job-browse-list');
+  el.innerHTML='<div class="empty"><p>Loading jobs...</p></div>';
+  fetch(api('/api/jobs')).then(r=>r.json()).then(data=>{
+    allJobs=data.jobs||[];
+    renderJobBrowse();
+  }).catch(()=>{el.innerHTML='<div class="empty"><p>Could not load jobs</p></div>';});
+}
+
+function renderJobBrowse(){
+  const el=document.getElementById('job-browse-list');
+  const countEl=document.getElementById('job-count');
+  const q=(document.getElementById('job-filter').value||'').toLowerCase();
+  const src=document.getElementById('job-source-filter').value;
+  let jobs=allJobs;
+  if(q)jobs=jobs.filter(j=>(j.title||'').toLowerCase().includes(q)||(j.company||'').toLowerCase().includes(q)||(j.location||'').toLowerCase().includes(q));
+  if(src)jobs=jobs.filter(j=>(j.source||'').toLowerCase()===src);
+  countEl.textContent=jobs.length+' job'+(jobs.length!==1?'s':'')+' found'+(q||src?' (filtered)':'');
+  if(!jobs.length){el.innerHTML='<div class="empty"><div class="icon">&#128188;</div><p>No jobs found</p></div>';return;}
+  const srcColors={remoteok:'tag-green',arbeitnow:'tag-cyan',linkedin:'tag-purple',greenhouse:'tag-pink',lever:'tag-yellow',adzuna:'tag-red',onlinejobsph:'tag-green'};
+  el.innerHTML=jobs.slice(0,50).map(j=>{
+    const tagCls=srcColors[(j.source||'').toLowerCase()]||'tag-cyan';
+    return`<div class="job-card-enhanced" onclick="viewJob('${esc(j.id||'')}')">
+    <div style="width:42px;height:42px;border-radius:12px;background:rgba(139,92,246,.08);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">&#128188;</div>
+    <div class="info"><div class="title">${esc(j.title)}</div>
+    <div class="sub">${esc(j.company)}${j.location?' | '+esc(j.location):''}</div>
+    <div class="meta"><span class="tag ${tagCls}">${esc(j.source)}</span>
+      ${j.salary?`<span class="tag tag-green">${esc(j.salary)}</span>`:''}
+      ${j.job_type?`<span class="tag tag-purple">${esc(j.job_type)}</span>`:''}</div></div>
+    ${j.application_link?`<a href="${esc(j.application_link)}" target="_blank" class="btn btn-ghost btn-sm" onclick="event.stopPropagation()" title="Apply">&#128279;</a>`:''}</div>`;
+  }).join('');
+}
+
+function filterJobs(){renderJobBrowse();}
+
+function viewJob(id){
+  const j=allJobs.find(x=>x.id===id);
+  if(!j)return;
+  const el=document.createElement('div');
+  el.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center';
+  el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(16,16,30,.98),rgba(12,12,20,.98));border:1px solid rgba(139,92,246,.12);border-radius:20px;max-width:650px;width:92%;max-height:80vh;overflow-y:auto;padding:28px;box-shadow:0 30px 80px rgba(0,0,0,.5)">
+    <div style="display:flex;justify-content:space-between;margin-bottom:16px"><div><h2 style="font-size:1.2rem;font-weight:800">${esc(j.title)}</h2><p style="color:#06b6d4;font-size:.85rem">${esc(j.company)}${j.location?' | '+esc(j.location):''}</p></div>
+    <button onclick="this.closest('div[style*=fixed]').remove()" style="width:34px;height:34px;border-radius:10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#fca5a5;cursor:pointer;font-size:1rem">&times;</button></div>
+    <div class="meta" style="margin-bottom:12px"><span class="tag tag-cyan">${esc(j.source)}</span>
+      ${j.salary?`<span class="tag tag-green">${esc(j.salary)}</span>`:''}
+      ${j.job_type?`<span class="tag tag-purple">${esc(j.job_type)}</span>`:''}</div>
+    ${j.description?`<div style="font-size:.85rem;color:#aaaacc;line-height:1.6;max-height:300px;overflow-y:auto;padding:12px;background:rgba(0,0,0,.2);border-radius:12px;margin-bottom:12px">${esc(j.description).substring(0,2000)}</div>`:''}
+    <div style="display:flex;gap:8px;margin-top:12px">
+      ${j.application_link?`<a href="${esc(j.application_link)}" target="_blank" class="btn btn-purple btn-sm">&#128279; Apply</a>`:''}
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('div[style*=fixed]').remove()">Close</button>
+    </div></div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click',e=>{if(e.target===el)el.remove();});
+}
+
+function loadApps(){
+  const el=document.getElementById('app-list');
+  el.innerHTML='<div class="empty"><p>Loading applications...</p></div>';
+  fetch(api('/api/job-search-data')).then(r=>r.json()).then(data=>{
+    allApps=data.applications||[];
+    renderApps();
+  }).catch(()=>{el.innerHTML='<div class="empty"><p>Could not load applications</p></div>';});
+}
+
+function filterApps(status,tabEl){
+  currentAppFilter=status;
+  document.querySelectorAll('#app-status-tabs .tab').forEach(t=>t.classList.remove('active'));
+  if(tabEl)tabEl.classList.add('active');
+  renderApps();
+}
+
+function renderApps(){
+  const el=document.getElementById('app-list');
+  let apps=allApps;
+  if(currentAppFilter!=='all')apps=apps.filter(a=>(a.status||'pending')===currentAppFilter);
+  if(!apps.length){el.innerHTML='<div class="empty"><div class="icon">&#128221;</div><p>No applications found</p></div>';return;}
+  el.innerHTML=apps.map(a=>{
+    const j=a.jobs||{};
+    const sc=a.match_score||0;
+    const st=a.status||'pending';
+    const stColors={pending:'tag-yellow',approved:'tag-green',sent:'tag-purple',rejected:'tag-red'};
+    return`<div class="list-item">
+      <div class="info"><div class="title">${esc(j.title||a.job_title||'?')}</div>
+      <div class="sub">${esc(j.company||a.company||'?')}</div>
+      <div class="meta"><span class="tag ${stColors[st]||'tag-yellow'}">${st}</span>
+        <span class="tag tag-cyan">${esc(j.source||'')}</span></div></div>
+      <div style="display:flex;gap:6px;align-items:center">
+        ${st==='pending'?`<button class="btn btn-green btn-sm" onclick="updateApp(${a.id},'approved')">&#9989;</button><button class="btn btn-red btn-sm" onclick="updateApp(${a.id},'rejected')">&#10060;</button>`:''}
+        ${st==='approved'?`<button class="btn btn-purple btn-sm" onclick="updateApp(${a.id},'sent')">&#128231; Send</button>`:''}
+      </div>
+      <div class="score ${scoreClass(sc)}">${sc}%</div></div>`;
+  }).join('');
+}
+
+function updateApp(id,status){
+  fetch(api('/api/update-app-status'),{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({application_id:id,status:status})})
+    .then(r=>r.json()).then(d=>{if(d.success){toast('Application '+status+'!','success');loadApps();}else toast('Error: '+d.error,'error')})
+    .catch(()=>toast('Network error','error'));
+}
+
+function showScanStatus(msg){
+  const el=document.getElementById('scan-status');
+  el.style.display='flex';
+  document.getElementById('scan-status-text').textContent=msg;
+}
+
+function runJobScan(){
+  const btn=document.getElementById('scan-btn');
+  const kw=document.getElementById('scan-keywords').value;
+  const max=parseInt(document.getElementById('scan-max').value)||10;
+  btn.disabled=true;btn.innerHTML='&#9203; Scanning...';
+  showScanStatus('Scanning 6 sources... this may take a minute.');
+  fetch(api('/api/job-scan'),{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({keywords:kw.split(',').map(s=>s.trim()).filter(Boolean),max_per_source:max})})
+    .then(r=>r.json()).then(d=>{
+      btn.disabled=false;btn.innerHTML='&#128269; Run Search';
+      if(d.success){
+        const saved=d.total_saved||0;const scraped=d.total_scraped||0;const dupes=scraped-saved;
+        showScanStatus('Saved '+saved+' new jobs from '+scraped+' scraped'+(dupes>0?' ('+dupes+' duplicates removed)':''));
+        toast('Scan complete! '+saved+' new jobs','success');
+        loadData();
+      }else{showScanStatus('Error: '+d.error);toast('Scan failed','error');}
+    }).catch(()=>{btn.disabled=false;btn.innerHTML='&#128269; Run Search';showScanStatus('Network error');toast('Network error','error');});
+}
+
+function runJobAnalysis(){
+  const btn=document.getElementById('analyze-btn');
+  btn.disabled=true;btn.innerHTML='&#9203; Analyzing...';
+  showScanStatus('Analyzing jobs against your CV...');
+  fetch(api('/api/job-analyze'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})})
+    .then(r=>r.json()).then(d=>{
+      btn.disabled=false;btn.innerHTML='&#129504; Analyze';
+      if(d.success){
+        showScanStatus('Analyzed '+(d.jobs_analyzed||0)+' jobs, created '+(d.applications_created||0)+' applications');
+        toast('Analysis complete!','success');
+        loadData();
+      }else{showScanStatus('Error: '+d.error);toast('Analysis failed','error');}
+    }).catch(()=>{btn.disabled=false;btn.innerHTML='&#129504; Analyze';showScanStatus('Network error');toast('Network error','error');});
+}
+
+function loadCv(){
+  fetch(api('/api/job-search-data')).then(r=>r.json()).then(data=>{
+    const cv=data.cv||{};
+    if(cv.content)document.getElementById('cv-text').value=cv.content;
+  }).catch(()=>{});
+}
+
+function saveCv(){
+  const content=document.getElementById('cv-text').value;
+  fetch(api('/api/save-cv'),{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({content:content})})
+    .then(r=>r.json()).then(d=>{if(d.success)toast('CV saved!','success');else toast('Error: '+d.error,'error')})
+    .catch(()=>toast('Network error','error'));
+}
+
+// Init - only load if logged in
+if(ASHLEY_UID) loadData();
+
+// Particles
+(function(){
+  const c=document.getElementById('particles'),ctx=c.getContext('2d');let W,H,pts=[];
+  function resize(){W=c.width=innerWidth;H=c.height=innerHeight}
+  resize();addEventListener('resize',resize);
+  const n=innerWidth<640?15:40;
+  for(let i=0;i<n;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,r:Math.random()*1.2+.4,a:Math.random()*.2+.06});
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(236,72,153,${p.a})`;ctx.fill()});
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+      const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<130){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(236,72,153,${.04*(1-d/130)})`;ctx.stroke()}}
+    requestAnimationFrame(draw)}
+  draw();
+})();
+</script>
+</body>
+</html>

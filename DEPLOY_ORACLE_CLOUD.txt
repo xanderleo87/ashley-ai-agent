@@ -1,0 +1,149 @@
+============================================
+ Ashley AI Agent - Oracle Cloud Free Tier
+ Deployment Guide
+============================================
+
+WHAT YOU GET: A free VPS that runs Ashley 24/7, forever.
+
+
+=== STEP 1: CREATE AN ACCOUNT ===
+
+1. Go to https://cloud.oracle.com/free
+2. Click "Start for free"
+3. Fill in your email, name, country (Philippines)
+4. You need a credit/debit card for verification (they WON'T charge you)
+5. Choose Home Region: Singapore or Japan East (Tokyo)
+   - Pick closest to Philippines for speed
+   - IMPORTANT: You CANNOT change region later!
+6. Complete signup
+
+
+=== STEP 2: WAIT FOR APPROVAL ===
+
+- Usually instant, sometimes up to 24 hours
+- You'll get an email when ready
+
+
+=== STEP 3: CREATE A VM INSTANCE ===
+
+1. Log into https://cloud.oracle.com
+2. Hamburger menu (top left) > Compute > Instances
+3. Click "Create Instance"
+4. Configure:
+   - Name: ashley-ai-agent
+   - Image: Click "Edit" > select Ubuntu 22.04 (Canonical Ubuntu)
+   - Shape: Click "Edit" > select VM.Standard.E2.1.Micro
+     (This is the ALWAYS FREE one - 1 GB RAM, 1 CPU)
+   - Networking: Leave defaults
+   - SSH Key: Select "Generate a key pair for me"
+     > Click "Save Private Key" > download the .key file
+     > SAVE THIS FILE! You need it to log in!
+5. Click "Create"
+6. Wait 1-2 minutes
+
+
+=== STEP 4: NOTE YOUR PUBLIC IP ===
+
+- On the instance details page, find "Public IPv4 address"
+- Copy it (looks like 129.154.xx.xx)
+- Save it somewhere
+
+
+=== STEP 5: OPEN FIREWALL PORTS ===
+
+1. On your instance page, click the Subnet link (under "Primary VNIC")
+2. Click the Security List (Default Security List)
+3. Click "Add Ingress Rules"
+4. Add:
+   - Source CIDR: 0.0.0.0/0
+   - Destination Port Range: 443
+   - Description: HTTPS
+5. Click "Add Ingress Rules"
+
+
+=== STEP 6: SSH INTO YOUR VPS ===
+
+Open PowerShell on your PC:
+
+  ssh -i "C:\path\to\your-downloaded-key.key" ubuntu@YOUR_PUBLIC_IP
+
+Replace:
+  - C:\path\to\your-downloaded-key.key = where you saved the private key
+  - YOUR_PUBLIC_IP = the IP from Step 4
+
+If asked "Are you sure?" type: yes
+
+
+=== STEP 7: STOP ASHLEY ON YOUR PC FIRST ===
+
+IMPORTANT: Close the terminal where Ashley is running on your PC,
+or press Ctrl+C. Two bots can't use the same Telegram token!
+
+
+=== STEP 8: UPLOAD ASHLEY TO VPS ===
+
+Open a SECOND PowerShell window on your PC:
+
+  scp -i "C:\path\to\your-downloaded-key.key" -r "C:\Users\Acer\Desktop\Ashley AI Agent\ashley-ai-agent" ubuntu@YOUR_PUBLIC_IP:/home/ubuntu/
+
+
+=== STEP 9: DEPLOY ON THE VPS ===
+
+Back in your SSH window, run these commands one by one:
+
+  sudo apt update && sudo apt install -y python3 python3-pip python3-venv
+
+  cd /home/ubuntu/ashley-ai-agent
+
+  python3 -m venv venv
+
+  source venv/bin/activate
+
+  pip install -r requirements.txt
+
+Then set up the auto-start service (copy-paste this entire block):
+
+  sudo tee /etc/systemd/system/ashley.service > /dev/null <<'EOF'
+  [Unit]
+  Description=Ashley AI Agent
+  After=network.target
+
+  [Service]
+  Type=simple
+  User=ubuntu
+  WorkingDirectory=/home/ubuntu/ashley-ai-agent
+  ExecStart=/home/ubuntu/ashley-ai-agent/venv/bin/python main.py
+  Restart=always
+  RestartSec=10
+  Environment=PYTHONUNBUFFERED=1
+
+  [Install]
+  WantedBy=multi-user.target
+  EOF
+
+Then start Ashley:
+
+  sudo systemctl daemon-reload
+  sudo systemctl enable ashley
+  sudo systemctl start ashley
+
+
+=== STEP 10: VERIFY ===
+
+  sudo systemctl status ashley
+
+You should see "active (running)" in green. Done!
+
+
+=== USEFUL COMMANDS (SAVE THESE) ===
+
+  sudo systemctl status ashley      - Check if running
+  sudo systemctl restart ashley     - Restart Ashley
+  sudo systemctl stop ashley        - Stop Ashley
+  sudo journalctl -u ashley -f      - View live logs
+
+
+=== DONE! ===
+
+Ashley is now running 24/7 for free on Oracle Cloud.
+She will auto-restart on crashes and VPS reboots.

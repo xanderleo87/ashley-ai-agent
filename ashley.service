@@ -1,0 +1,15 @@
+[Unit]
+Description=Ashley AI Agent - Telegram Bot
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/ashley-ai-agent
+ExecStart=/root/ashley-ai-agent/venv/bin/python main.py
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

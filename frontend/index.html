@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ashley AI Agent - Executive Assistant Powered by Python + OpenAI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #12121a;
+    --bg-card: #1a1a2e;
+    --bg-card-hover: #1f1f35;
+    --accent-teal: #00d4aa;
+    --accent-teal-dim: rgba(0, 212, 170, 0.15);
+    --accent-pink: #ff3e8e;
+    --accent-pink-dim: rgba(255, 62, 142, 0.15);
+    --accent-purple: #8b5cf6;
+    --accent-purple-dim: rgba(139, 92, 246, 0.15);
+    --accent-orange: #f59e0b;
+    --accent-orange-dim: rgba(245, 158, 11, 0.15);
+    --accent-blue: #3b82f6;
+    --accent-blue-dim: rgba(59, 130, 246, 0.15);
+    --text-primary: #f0f0f5;
+    --text-secondary: #a0a0b8;
+    --text-dim: #6b6b80;
+    --border-color: rgba(255,255,255,0.06);
+    --glow-teal: 0 0 40px rgba(0,212,170,0.2);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+
+  /* ── Animated background ── */
+  .bg-grid {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .bg-glow {
+    position: fixed;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    filter: blur(150px);
+    opacity: 0.12;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .bg-glow-1 { top: -200px; left: -100px; background: var(--accent-teal); }
+  .bg-glow-2 { bottom: -200px; right: -100px; background: var(--accent-pink); }
+  .bg-glow-3 { top: 50%; left: 50%; transform: translate(-50%,-50%); background: var(--accent-purple); opacity: 0.06; }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Navigation ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(10,10,15,0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-color);
+  }
+  nav .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+  .nav-logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: var(--accent-teal);
+    letter-spacing: -0.5px;
+  }
+  .nav-logo span { color: var(--text-primary); }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent-teal); }
+  .nav-badge {
+    background: var(--accent-teal);
+    color: var(--bg-primary);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 160px 0 100px;
+    text-align: center;
+    position: relative;
+  }
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent-teal-dim);
+    border: 1px solid rgba(0,212,170,0.2);
+    padding: 8px 20px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent-teal);
+    margin-bottom: 32px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(3rem, 6vw, 5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    margin-bottom: 24px;
+    letter-spacing: -2px;
+  }
+  .hero h1 .gradient-text {
+    background: linear-gradient(135deg, var(--accent-teal), #00e5ff, var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    max-width: 640px;
+    margin: 0 auto 48px;
+    line-height: 1.7;
+  }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    flex-wrap: wrap;
+  }
+  .hero-stat {
+    text-align: center;
+  }
+  .hero-stat-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--accent-teal);
+  }
+  .hero-stat-label {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+  .hero-visual {
+    margin-top: 72px;
+    position: relative;
+  }
+  .hero-mockup {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 800px;
+    margin: 0 auto;
+    box-shadow: var(--glow-teal), 0 40px 80px rgba(0,0,0,0.5);
+  }
+  .mockup-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .mockup-avatar {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, var(--accent-teal), var(--accent-purple));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+  .mockup-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+  .mockup-status {
+    font-size: 0.75rem;
+    color: var(--accent-teal);
+  }
+  .chat-messages { display: flex; flex-direction: column; gap: 16px; }
+  .chat-msg {
+    padding: 14px 20px;
+    border-radius: 16px;
+    max-width: 80%;
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+  .chat-user {
+    background: linear-gradient(135deg, #1a3a3a, #1a2a3a);
+    border: 1px solid rgba(0,212,170,0.15);
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+    color: var(--text-primary);
+  }
+  .chat-ashley {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    color: var(--text-secondary);
+  }
+  .chat-ashley strong { color: var(--accent-teal); }
+  .chat-voice {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 10px 18px;
+    border-radius: 24px;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    align-self: flex-start;
+  }
+  .voice-icon {
+    width: 32px; height: 32px;
+    background: var(--accent-teal);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--bg-primary);
+    font-size: 0.8rem;
+  }
+  .voice-wave {
+    display: flex; align-items: center; gap: 2px; height: 20px;
+  }
+  .voice-wave span {
+    display: block;
+    width: 3px;
+    background: var(--accent-teal);
+    border-radius: 3px;
+    animation: wave 1s ease-in-out infinite;
+  }
+  .voice-wave span:nth-child(1) { height: 6px; animation-delay:0s; }
+  .voice-wave span:nth-child(2) { height: 14px; animation-delay:0.1s; }
+  .voice-wave span:nth-child(3) { height: 20px; animation-delay:0.2s; }
+  .voice-wave span:nth-child(4) { height: 10px; animation-delay:0.3s; }
+  .voice-wave span:nth-child(5) { height: 16px; animation-delay:0.15s; }
+  .voice-wave span:nth-child(6) { height: 8px; animation-delay:0.25s; }
+  .voice-wave span:nth-child(7) { height: 12px; animation-delay:0.05s; }
+  @keyframes wave {
+    0%,100% { transform: scaleY(1); }
+    50% { transform: scaleY(0.4); }
+  }
+
+  /* ── Section Title ── */
+  .section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  .section-label::before {
+    content: '';
+    display: block;
+    width: 24px; height: 2px;
+  }
+  .section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+  }
+  .section-desc {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    max-width: 560px;
+    line-height: 1.7;
+  }
+
+  /* ── Architecture ── */
+  .architecture { padding: 120px 0; }
+  .arch-header { text-align: center; margin-bottom: 64px; }
+  .arch-header .section-label { color: var(--accent-purple); }
+  .arch-header .section-label::before { background: var(--accent-purple); }
+  .arch-header .section-desc { margin: 0 auto; }
+
+  .workflow-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    margin-bottom: 32px;
+  }
+  .workflow-main {
+    background: linear-gradient(145deg, var(--bg-card), #1e1e38);
+    border: 1px solid rgba(139,92,246,0.2);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .workflow-main::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-purple), var(--accent-teal));
+  }
+  .workflow-main-badge {
+    display: inline-block;
+    background: var(--accent-purple);
+    color: white;
+    padding: 4px 14px;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+  .workflow-main h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .workflow-main p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+  .workflow-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .tool-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border-color);
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+  }
+  .tool-chip .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .support-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    margin-top: 32px;
+  }
+  .support-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 32px;
+    transition: transform 0.3s, border-color 0.3s;
+  }
+  .support-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255,255,255,0.12);
+  }
+  .support-card-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+  }
+  .support-card h4 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .support-card p {
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.7;
+  }
+  .support-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 14px;
+  }
+
+  /* ── Features ── */
+  .features { padding: 120px 0; }
+  .features-header { text-align: center; margin-bottom: 72px; }
+  .features-header .section-label { color: var(--accent-teal); }
+  .features-header .section-label::before { background: var(--accent-teal); }
+  .features-header .section-desc { margin: 0 auto; }
+
+  .feature-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 24px;
+  }
+  .feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 36px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .feature-icon {
+    width: 56px; height: 56px;
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 24px;
+  }
+  .feature-card h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .feature-card p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+  .feature-tag {
+    display: inline-block;
+    margin-top: 16px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 12px;
+    border-radius: 6px;
+  }
+
+  /* ── How It Works ── */
+  .how-it-works { padding: 120px 0; }
+  .how-header { text-align: center; margin-bottom: 80px; }
+  .how-header .section-label { color: var(--accent-orange); }
+  .how-header .section-label::before { background: var(--accent-orange); }
+  .how-header .section-desc { margin: 0 auto; }
+
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .steps::before {
+    content: '';
+    position: absolute;
+    left: 32px;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent-teal), var(--accent-purple), var(--accent-pink));
+    opacity: 0.3;
+  }
+  .step {
+    display: flex;
+    gap: 32px;
+    padding: 32px 0;
+    position: relative;
+  }
+  .step-num {
+    width: 64px; height: 64px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    position: relative;
+    z-index: 1;
+  }
+  .step-content h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .step-content p {
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+    line-height: 1.7;
+  }
+
+  /* ── Tech Stack ── */
+  .tech-stack { padding: 120px 0; }
+  .tech-header { text-align: center; margin-bottom: 64px; }
+  .tech-header .section-label { color: var(--accent-blue); }
+  .tech-header .section-label::before { background: var(--accent-blue); }
+
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .tech-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 28px 20px;
+    text-align: center;
+    transition: transform 0.3s, border-color 0.3s;
+  }
+  .tech-item:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255,255,255,0.12);
+  }
+  .tech-icon {
+    font-size: 2rem;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .tech-name {
+    font-weight: 600;
+    font-size: 0.88rem;
+    margin-bottom: 4px;
+  }
+  .tech-role {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Use Cases / Demo ── */
+  .use-cases { padding: 120px 0; }
+  .use-header { text-align: center; margin-bottom: 64px; }
+  .use-header .section-label { color: var(--accent-pink); }
+  .use-header .section-label::before { background: var(--accent-pink); }
+  .use-header .section-desc { margin: 0 auto; }
+
+  .use-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  .use-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: transform 0.3s;
+  }
+  .use-card:hover { transform: translateY(-4px); }
+  .use-card-top {
+    padding: 24px 28px 0;
+  }
+  .use-card-emoji {
+    font-size: 2rem;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .use-card h4 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+  }
+  .use-card p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    padding: 0 28px 24px;
+  }
+  .use-card-example {
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    padding: 16px 28px;
+    font-size: 0.82rem;
+    color: var(--accent-teal);
+    font-style: italic;
+  }
+  .use-card-example::before {
+    content: '"';
+    font-size: 1.2rem;
+    margin-right: 4px;
+    opacity: 0.5;
+  }
+  .use-card-example::after {
+    content: '"';
+    font-size: 1.2rem;
+    margin-left: 4px;
+    opacity: 0.5;
+  }
+
+  /* ── Personality ── */
+  .personality {
+    padding: 120px 0;
+  }
+  .personality-inner {
+    background: linear-gradient(145deg, #1a1a30, #12121a);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 64px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: center;
+  }
+  .personality-text .section-label { color: var(--accent-pink); }
+  .personality-text .section-label::before { background: var(--accent-pink); }
+  .personality-traits {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 32px;
+  }
+  .trait {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .trait-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+  .trait h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .trait p {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .personality-quotes {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .quote-bubble {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px 24px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    position: relative;
+  }
+  .quote-bubble::before {
+    content: 'Ashley says:';
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent-teal);
+    margin-bottom: 8px;
+  }
+
+  /* ── Footer ── */
+  footer {
+    padding: 80px 0 40px;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+  }
+  .footer-logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--accent-teal);
+    margin-bottom: 16px;
+  }
+  .footer-desc {
+    color: var(--text-dim);
+    font-size: 0.88rem;
+    max-width: 400px;
+    margin: 0 auto 32px;
+    line-height: 1.6;
+  }
+  .footer-tags {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 40px;
+  }
+  .footer-tag {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border-color);
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+  .footer-copy {
+    color: var(--text-dim);
+    font-size: 0.78rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .personality-inner {
+      grid-template-columns: 1fr;
+      padding: 36px;
+      gap: 40px;
+    }
+    .feature-cards, .support-grid, .use-grid {
+      grid-template-columns: 1fr;
+    }
+    .hero-stats { gap: 32px; }
+    .steps::before { left: 28px; }
+    .hero-mockup { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+<div class="bg-glow bg-glow-3"></div>
+
+<!-- Navigation -->
+<nav>
+  <div class="container">
+    <div class="nav-logo"><span>Ashley</span> AI</div>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#how-it-works">How It Works</a></li>
+      <li><a href="#use-cases">Use Cases</a></li>
+      <li><a href="#tech">Tech Stack</a></li>
+    </ul>
+    <a href="#architecture" class="nav-badge">Powered by Python + OpenAI</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-eyebrow">&#9889; AI-Powered Executive Assistant</div>
+    <h1>Meet <span class="gradient-text">Ashley</span>,<br>Your AI Assistant</h1>
+    <p class="hero-sub">
+      A voice-enabled, multi-workflow AI agent built on N8N that manages your calendar, emails, contacts, and tasks &mdash; all through a simple Telegram conversation.
+    </p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-num">12</div>
+        <div class="hero-stat-label">AI Tool Functions</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">6</div>
+        <div class="hero-stat-label">Integrated APIs</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">10K+</div>
+        <div class="hero-stat-label">Executions</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">24/7</div>
+        <div class="hero-stat-label">Always On</div>
+      </div>
+    </div>
+
+    <!-- Chat Mockup -->
+    <div class="hero-visual">
+      <div class="hero-mockup">
+        <div class="mockup-header">
+          <div class="mockup-avatar">&#129302;</div>
+          <div>
+            <div class="mockup-name">Ashley Mashpotato</div>
+            <div class="mockup-status">&#9679; Online &mdash; bot</div>
+          </div>
+        </div>
+        <div class="chat-messages">
+          <div class="chat-msg chat-user">
+            Ashley, schedule emails for Victoria, Angelina, and Walwal about New Year's Midyanoche &mdash; stagger them 10 mins apart starting 2:30 PM
+          </div>
+          <div class="chat-msg chat-ashley">
+            <strong>Got it!</strong> I found their emails and drafted everything. Here's the plan:<br><br>
+            1. Victoria &mdash; 2:30 PM (12 round fruits)<br>
+            2. Angelina &mdash; 2:40 PM (queso de bola & cake)<br>
+            3. Walwal &mdash; 2:50 PM (crispy lechon baboy)<br><br>
+            Shall I proceed with scheduling these emails? &#128522;
+          </div>
+          <div class="chat-voice">
+            <div class="voice-icon">&#9654;</div>
+            <div>
+              <div style="font-weight:600; color: var(--text-primary); margin-bottom:2px;">Ashley's Voice</div>
+              <div style="font-size:0.75rem;">00:47</div>
+            </div>
+            <div class="voice-wave">
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="features-header">
+      <div class="section-label">Capabilities</div>
+      <h2 class="section-title">Everything an Executive<br>Assistant Should Do</h2>
+      <p class="section-desc">Ashley handles the full spectrum of daily admin tasks through natural conversation &mdash; text or voice.</p>
+    </div>
+
+    <div class="feature-cards">
+      <!-- Calendar -->
+      <div class="feature-card">
+        <div class="feature-icon" style="background: var(--accent-blue-dim); color: var(--accent-blue);">&#128197;</div>
+        <h3>Smart Calendar Management</h3>
+        <p>Create, reschedule, update, and delete Google Calendar events. Ashley checks for conflicts before booking and automatically sends invites to attendees.</p>
+        <span class="feature-tag" style="background: var(--accent-blue-dim); color: var(--accent-blue);">Google Calendar</span>
+      </div>
+      <!-- Email -->
+      <div class="feature-card">
+        <div class="feature-icon" style="background: var(--accent-pink-dim); color: var(--accent-pink);">&#9993;</div>
+        <h3>Email Drafting & Scheduling</h3>
+        <p>Compose multiple emails at once, send immediately or schedule for later with staggered timing. Emails are queued in Google Sheets and dispatched automatically.</p>
+        <span class="feature-tag" style="background: var(--accent-pink-dim); color: var(--accent-pink);">Gmail + Scheduler</span>
+      </div>
+      <!-- Voice -->
+      <div class="feature-card">
+        <div class="feature-icon" style="background: var(--accent-teal-dim); color: var(--accent-teal);">&#127908;</div>
+        <h3>Voice-Enabled Interaction</h3>
+        <p>Send voice messages on Telegram &mdash; Ashley transcribes them with OpenAI Whisper, processes the request, and replies with both text and a generated voice note.</p>
+        <span class="feature-tag" style="background: var(--accent-teal-dim); color: var(--accent-teal);">Speech-to-Text + TTS</span>
+      </div>
+      <!-- Contacts -->
+      <div class="feature-card">
+        <div class="feature-icon" style="background: var(--accent-purple-dim); color: var(--accent-purple);">&#128101;</div>
+        <h3>Contact Management</h3>
+        <p>Automatically saves new contacts from incoming emails. Look up anyone by name to find their email. Ashley never guesses &mdash; she always verifies first.</p>
+        <span class="feature-tag" style="background: var(--accent-purple-dim); color: var(--accent-purple);">Google Sheets CRM</span>
+      </div>
+      <!-- Tasks -->
+      <div class="feature-card">
+        <div class="feature-icon" style="background: var(--accent-orange-dim); color: var(--accent-orange);">&#9745;</div>
+        <h3>Task & To-Do Tracking</h3>
+        <p>Add items to your to-do list and read them back anytime. Tasks are stored in Baserow for persistent, structured tracking.</p>
+        <span class="feature-tag" style="background: var(--accent-orange-dim); color: var(--accent-orange);">Baserow Database</span>
+      </div>
+      <!-- Gmail Watch -->
+      <div class="feature-card">
+        <div class="feature-icon" style="background: rgba(255,255,255,0.06); color: var(--text-primary);">&#128276;</div>
+        <h3>Real-Time Email Alerts</h3>
+        <p>The Gmail Watcher monitors your inbox every minute. When a new email arrives, Ashley sends you an instant Telegram notification with the sender, subject, and snippet.</p>
+        <span class="feature-tag" style="background: rgba(255,255,255,0.06); color: var(--text-secondary);">Gmail Watcher</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Architecture -->
+<section class="architecture" id="architecture">
+  <div class="container">
+    <div class="arch-header">
+      <div class="section-label">System Architecture</div>
+      <h2 class="section-title">Python Backend, One Brain</h2>
+      <p class="section-desc">Ashley's intelligence runs on a single Python application with OpenAI function calling, Supabase database, and background schedulers.</p>
+    </div>
+
+    <!-- Main Workflow -->
+    <div class="workflow-main">
+      <div class="workflow-main-badge">Python Core</div>
+      <h3>Ashley AI Agent (Python + OpenAI Function Calling)</h3>
+      <p>The central brain that listens for Telegram messages (text or voice), processes them through OpenAI GPT-4o with function calling, executes 12 tool functions sequentially, and responds with both text and voice.</p>
+      <div class="workflow-tools">
+        <span class="tool-chip"><span class="dot" style="background: var(--accent-teal);"></span> Google Calendar (CRUD)</span>
+        <span class="tool-chip"><span class="dot" style="background: var(--accent-pink);"></span> Gmail API (Send & Read)</span>
+        <span class="tool-chip"><span class="dot" style="background: var(--accent-purple);"></span> Telegram Bot (Message & Voice)</span>
+        <span class="tool-chip"><span class="dot" style="background: var(--accent-orange);"></span> Supabase (Contacts)</span>
+        <span class="tool-chip"><span class="dot" style="background: var(--accent-blue);"></span> Supabase (Tasks)</span>
+        <span class="tool-chip"><span class="dot" style="background: #ef4444;"></span> OpenAI (GPT-4o + Whisper + TTS)</span>
+        <span class="tool-chip"><span class="dot" style="background: #22c55e;"></span> Supabase (Email Queue)</span>
+        <span class="tool-chip"><span class="dot" style="background: #eab308;"></span> APScheduler (Background Jobs)</span>
+      </div>
+    </div>
+
+    <!-- Support Workflows -->
+    <div class="support-grid">
+      <div class="support-card">
+        <div class="support-badge" style="background: var(--accent-teal-dim); color: var(--accent-teal);">Support</div>
+        <div class="support-card-icon" style="background: var(--accent-teal-dim); color: var(--accent-teal);">&#9201;</div>
+        <h4>Email Queue (Supabase)</h4>
+        <p>Scheduled emails are queued into Supabase PostgreSQL. The AI agent writes each email sequentially to prevent race conditions.</p>
+      </div>
+      <div class="support-card">
+        <div class="support-badge" style="background: var(--accent-pink-dim); color: var(--accent-pink);">Support</div>
+        <div class="support-card-icon" style="background: var(--accent-pink-dim); color: var(--accent-pink);">&#128640;</div>
+        <h4>Email Dispatcher (APScheduler)</h4>
+        <p>A background job runs every minute to check the Supabase email queue. When a scheduled email's time has arrived, it sends via Gmail API and marks it as "Sent".</p>
+      </div>
+      <div class="support-card">
+        <div class="support-badge" style="background: var(--accent-purple-dim); color: var(--accent-purple);">Support</div>
+        <div class="support-card-icon" style="background: var(--accent-purple-dim); color: var(--accent-purple);">&#128065;</div>
+        <h4>Gmail Watcher (APScheduler)</h4>
+        <p>A background job monitors your inbox every minute for new unread emails. Auto-saves unknown senders to Supabase contacts and sends instant Telegram notifications.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="how-it-works" id="how-it-works">
+  <div class="container">
+    <div class="how-header">
+      <div class="section-label">Process</div>
+      <h2 class="section-title">How Ashley Works</h2>
+      <p class="section-desc">From your message to completed action &mdash; here's the flow.</p>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num" style="background: var(--accent-teal-dim); color: var(--accent-teal);">1</div>
+        <div class="step-content">
+          <h3>You Send a Message</h3>
+          <p>Send a text or voice message to Ashley's Telegram bot. Voice messages are automatically transcribed using OpenAI Whisper.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background: var(--accent-blue-dim); color: var(--accent-blue);">2</div>
+        <div class="step-content">
+          <h3>Ashley's Brain Processes</h3>
+          <p>The AI Agent (powered by OpenAI GPT) analyzes your request with full context &mdash; current date/time, your contacts, calendar, and conversation history via window buffer memory.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background: var(--accent-purple-dim); color: var(--accent-purple);">3</div>
+        <div class="step-content">
+          <h3>Tools Are Executed Sequentially</h3>
+          <p>Ashley calls the right tools one by one: looks up contacts, checks calendar for conflicts, drafts emails, creates events. No parallel execution &mdash; strict sequential order for reliability.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background: var(--accent-orange-dim); color: var(--accent-orange);">4</div>
+        <div class="step-content">
+          <h3>Confirmation Before Action</h3>
+          <p>Ashley shows you drafts and proposed times. She only proceeds once you say "Go ahead." Conflicts are flagged, never overridden.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background: var(--accent-pink-dim); color: var(--accent-pink);">5</div>
+        <div class="step-content">
+          <h3>Response via Text + Voice</h3>
+          <p>Ashley replies with a text summary and a voice note generated by OpenAI TTS (Nova voice) &mdash; a complete, human-like conversational experience on Telegram.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Use Cases -->
+<section class="use-cases" id="use-cases">
+  <div class="container">
+    <div class="use-header">
+      <div class="section-label">Real Examples</div>
+      <h2 class="section-title">What You Can Ask Ashley</h2>
+      <p class="section-desc">From quick tasks to complex multi-step operations, Ashley handles it all through natural conversation.</p>
+    </div>
+
+    <div class="use-grid">
+      <div class="use-card">
+        <div class="use-card-top">
+          <span class="use-card-emoji">&#128197;</span>
+          <h4>Book a Meeting</h4>
+        </div>
+        <p>Ashley checks your calendar, detects conflicts, finds the attendee's email from your contacts, creates the event, and sends the invite.</p>
+        <div class="use-card-example">Book a meeting with Maheen tomorrow at 3 PM to discuss the project</div>
+      </div>
+      <div class="use-card">
+        <div class="use-card-top">
+          <span class="use-card-emoji">&#128231;</span>
+          <h4>Schedule Staggered Emails</h4>
+        </div>
+        <p>Draft multiple personalized emails, set specific send times for each one, and let the dispatcher handle the rest automatically.</p>
+        <div class="use-card-example">Send emails to Victoria, Angelina, and Walwal about Midyanoche &mdash; stagger 10 mins apart</div>
+      </div>
+      <div class="use-card">
+        <div class="use-card-top">
+          <span class="use-card-emoji">&#128203;</span>
+          <h4>Manage To-Do Lists</h4>
+        </div>
+        <p>Add tasks, read your full list, and keep track of what needs to get done &mdash; all stored in a persistent database.</p>
+        <div class="use-card-example">Add "make a coffee later" to my to-do list. Then read me my tasks.</div>
+      </div>
+      <div class="use-card">
+        <div class="use-card-top">
+          <span class="use-card-emoji">&#128260;</span>
+          <h4>Reschedule Events</h4>
+        </div>
+        <p>Ashley finds the event by name, checks for new conflicts, updates the time, and confirms the change was made.</p>
+        <div class="use-card-example">Move my grocery run to 4 PM on Monday</div>
+      </div>
+      <div class="use-card">
+        <div class="use-card-top">
+          <span class="use-card-emoji">&#128172;</span>
+          <h4>Check Inbox</h4>
+        </div>
+        <p>Get a summary of your unread emails without leaving Telegram. Ashley reads your inbox and reports back.</p>
+        <div class="use-card-example">Ashley, do I have any new emails today?</div>
+      </div>
+      <div class="use-card">
+        <div class="use-card-top">
+          <span class="use-card-emoji">&#127911;</span>
+          <h4>Voice Conversations</h4>
+        </div>
+        <p>Send a voice note and get a voice reply. Ashley keeps spoken responses short and punchy, under 30 seconds.</p>
+        <div class="use-card-example">[Voice note] Hey Ashley, what's on my calendar this week?</div>
+      </div>
+      <div class="use-card">
+        <div class="use-card-top">
+          <span class="use-card-emoji">&#127919;</span>
+          <h4>Find Business Leads</h4>
+        </div>
+        <p>Scrape businesses from Google Maps, analyze their websites with AI, score each lead, and auto-generate personalized outreach emails &mdash; all in one command.</p>
+        <div class="use-card-example">Find me 10 dentists in Los Angeles and draft outreach emails for each one</div>
+      </div>
+      <div class="use-card">
+        <div class="use-card-top">
+          <span class="use-card-emoji">&#128200;</span>
+          <h4>Lead &amp; Outreach Management</h4>
+        </div>
+        <p>Browse your scraped leads, check lead scores, review AI-drafted outreach messages, and send them directly &mdash; all from Telegram or the dashboard.</p>
+        <div class="use-card-example">Show me my top leads. How many outreach emails are ready to send?</div>
+      </div>
+      <div class="use-card">
+        <div class="use-card-top">
+          <span class="use-card-emoji">&#128188;</span>
+          <h4>AI Job Search</h4>
+        </div>
+        <p>Scan multiple job boards, match listings against your CV with AI scoring, auto-generate application drafts, and track your entire job hunt.</p>
+        <div class="use-card-example">Search for remote Python developer jobs and analyze the top matches for me</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Tech Stack -->
+<section class="tech-stack" id="tech">
+  <div class="container">
+    <div class="tech-header">
+      <div class="section-label">Technology</div>
+      <h2 class="section-title">Built With</h2>
+    </div>
+
+    <div class="tech-grid">
+      <div class="tech-item">
+        <span class="tech-icon">&#128013;</span>
+        <div class="tech-name">Python</div>
+        <div class="tech-role">Core Backend</div>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">&#129302;</span>
+        <div class="tech-name">OpenAI GPT-4o</div>
+        <div class="tech-role">AI Brain + Function Calling</div>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">&#128172;</span>
+        <div class="tech-name">Telegram</div>
+        <div class="tech-role">Chat Interface</div>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">&#9993;</span>
+        <div class="tech-name">Gmail API</div>
+        <div class="tech-role">Email Service</div>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">&#128197;</span>
+        <div class="tech-name">Google Calendar</div>
+        <div class="tech-role">Scheduling</div>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">&#9889;</span>
+        <div class="tech-name">Supabase</div>
+        <div class="tech-role">PostgreSQL Database</div>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">&#127908;</span>
+        <div class="tech-name">OpenAI Whisper</div>
+        <div class="tech-role">Speech-to-Text</div>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">&#128264;</span>
+        <div class="tech-name">OpenAI TTS</div>
+        <div class="tech-role">Text-to-Speech (Nova)</div>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">&#9201;</span>
+        <div class="tech-name">APScheduler</div>
+        <div class="tech-role">Background Jobs</div>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">&#127758;</span>
+        <div class="tech-name">Apify</div>
+        <div class="tech-role">Google Maps Scraper</div>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">&#9729;</span>
+        <div class="tech-name">Any VPS / Cloud</div>
+        <div class="tech-role">Hosting</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Personality -->
+<section class="personality">
+  <div class="container">
+    <div class="personality-inner">
+      <div class="personality-text">
+        <div class="section-label">Personality</div>
+        <h2 class="section-title">Not Your Typical Bot</h2>
+        <p class="section-desc">Ashley is professional but charming, witty but reliable. She's a partner, not a calculator.</p>
+        <div class="personality-traits">
+          <div class="trait">
+            <div class="trait-icon" style="background: var(--accent-teal-dim); color: var(--accent-teal);">&#9889;</div>
+            <div>
+              <h4>Witty & Sharp</h4>
+              <p>Dry humor with a human touch. Conflict detection comes with personality.</p>
+            </div>
+          </div>
+          <div class="trait">
+            <div class="trait-icon" style="background: var(--accent-pink-dim); color: var(--accent-pink);">&#128170;</div>
+            <div>
+              <h4>No Hallucination Policy</h4>
+              <p>Never guesses emails or claims success without verification. If a tool fails, she tells you exactly what happened.</p>
+            </div>
+          </div>
+          <div class="trait">
+            <div class="trait-icon" style="background: var(--accent-orange-dim); color: var(--accent-orange);">&#128274;</div>
+            <div>
+              <h4>Confirmation-First</h4>
+              <p>Always shows drafts and proposals before executing. Your approval is required.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="personality-quotes">
+        <div class="quote-bubble">
+          The queue is as empty as a mall on Monday morning. &#128524;
+        </div>
+        <div class="quote-bubble">
+          You're good, Anasopie, but you can't be in two places at once! &#128721; You have a conflict at 3 PM.
+        </div>
+        <div class="quote-bubble">
+          I've added "Make a coffee later" to your to-do list! &#9749; Anything else on your mind?
+        </div>
+        <div class="quote-bubble">
+          I've scheduled the emails successfully! Victoria at 2:30, Angelina at 2:40, Walwal at 2:50. All locked and loaded. &#128640;
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="footer-logo">Ashley AI Agent</div>
+    <p class="footer-desc">An AI-powered executive assistant built with Python, OpenAI, Supabase, and a whole lot of personality.</p>
+    <div class="footer-tags">
+      <span class="footer-tag">Python</span>
+      <span class="footer-tag">OpenAI GPT-4o</span>
+      <span class="footer-tag">Telegram Bot</span>
+      <span class="footer-tag">Supabase</span>
+      <span class="footer-tag">Google APIs</span>
+      <span class="footer-tag">Voice-Enabled</span>
+      <span class="footer-tag">Email Scheduling</span>
+      <span class="footer-tag">Function Calling</span>
+    </div>
+    <div class="footer-copy">Built by Anasopie &bull; Powered by Python + OpenAI &bull; Ashley AI Agent &copy; 2025</div>
+  </div>
+</footer>
+
+</body>
+</html>
